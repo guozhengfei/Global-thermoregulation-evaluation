@@ -27,7 +27,7 @@ def smooth(x,window_len=11,window='hanning'):
         w=eval('np.'+window+'(window_len)')
     y=np.convolve(w/w.sum(),s,mode='same')
     return y[window_len:-window_len+1]
-# Ground temperature inversion
+# Canopy temperature inversion
 def T_LW(LWout, LWin, emissivity):
     sig = 5.6704 * 10 ** -8
     Tground = ((LWout - (1-emissivity)*LWin) / (emissivity * sig)) ** (1 / 4) - 273.15
@@ -130,7 +130,7 @@ for x in siteID_unique:
 Emis_LAI_data = pd.concat(Emis_data_extend)
 del Emis,Emis_29,Emis_31,Emis_32,MYD21_df
 
-# read FLUXNET data and calculate ground temperature
+# read FLUXNET data and calculate canopy temperature
 siteInfo = pd.read_csv(r'D:\Data\FLUXNET2015\site information1.csv')
 FluxFilepath = r'D:\Data\FLUXNET2015\\'
 FluxFileFolders = os.listdir(FluxFilepath)
@@ -217,7 +217,7 @@ for FluxFileFolder in FluxFileFolders:
     # plt.figure();plt.plot(gpp_daily.index,gpp_daily['gpp']); plt.plot(gpp_daily.index,gpp_daily['GS_label']*200)
     # gpp_hour = pd.merge(left=gpp_hour, right=gpp_daily, how='left', on='date', validate='many_to_one')
     gpp_daily = gpp_daily.drop(columns=['gpp','year'])
-    #  merge Flux data with emissivity for the Tground calculation
+    #  merge Flux data with emissivity for the Tc calculation
     FluxData = pd.merge(left=FluxData, right=Emi_df, how='left', on='date', validate='many_to_one')
     FluxData = pd.merge(left=FluxData, right=gpp_daily, how='left', on='date', validate='many_to_one')
 

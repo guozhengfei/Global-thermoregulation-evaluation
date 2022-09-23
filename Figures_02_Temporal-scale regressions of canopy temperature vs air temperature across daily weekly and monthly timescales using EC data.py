@@ -1,4 +1,4 @@
-# This code for the daily weekly and monthly Tc vs Ta temporal regression figure
+# This code for the daily weekly and monthly Tc vs Ta temporal regression analysis
 import pandas as pd
 import random
 import numpy as np

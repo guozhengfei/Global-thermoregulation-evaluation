@@ -1,0 +1,191 @@
+import pandas as pd
+import pingouin as pg
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as st
+import math
+
+def smooth(x, window_len=11, window='hanning'):
+    if x.ndim != 1:
+        raise ValueError("smooth only accepts 1 dimension arrays.")
+    if x.size < window_len:
+        raise ValueError("Input vector needs to be bigger than window size.")
+    if window_len<3:
+        return x
+    if not window in ['flat', 'hanning', 'hamming', 'bartlett', 'blackman']:
+        raise ValueError( "Window is on of 'flat', 'hanning', 'hamming', 'bartlett', 'blackman'")
+    s=np.r_[2*x[0]-x[window_len-1::-1],x,2*x[-1]-x[-1:-window_len:-1]]
+    if window == 'flat': #moving average
+        w=np.ones(window_len,'d')
+    else:
+        w=eval('np.'+window+'(window_len)')
+    y=np.convolve(w/w.sum(),s,mode='same')
+    return y[window_len:-window_len+1]
+
+# resultH = pd.read_csv(r'D:\Data\Global Thermoregulation\BESS\climate_LAI_PFT_hourly.csv');
+resultH = pd.read_csv(r'D:\Data\Project-3 homeothermy hypothesis test\csv files\EC_data_halfhour2.csv')
+LAI_org = resultH['LAI'].values
+LAI_org[LAI_org<2]=np.nan
+resultH['LAI']=LAI_org
+
+hour_org = resultH['Hour'].values.astype(float)
+hour_org[hour_org<1000]=np.nan
+hour_org[hour_org>1400]=np.nan
+resultH['Hour'] = hour_org
+resultH = resultH.dropna()
+resultH['dT'] = resultH['Tc']-resultH['Tair']
+dT = resultH['dT'].values
+
+# site dT vs. Tair
+siteNames = resultH['site'].unique()
+resultH['date'] = pd.to_datetime(resultH['date'])
+resultD_fromH = resultH.groupby([resultH['site'],resultH['date']],as_index=False).agg('mean')
+
+site_information = pd.read_csv(r'D:\Data\FLUXNET2015\site information1.csv')
+site_igbp = site_information[['SITE_ID', 'IGBP']]; site_igbp.columns = ['site', 'igbp']
+resultD_fromH = pd.merge(left=resultD_fromH, right=site_igbp, on='site')
+
+vpd=0.611*np.exp(17.502*resultD_fromH['Tair'].values/(resultD_fromH['Tair'].values +240.97))*(1 -resultD_fromH['RH'].values/100);
+resultD_fromH['vpd']=vpd;
+
+part_r_p = []
+for x in siteNames:
+    site_data = resultD_fromH.loc[resultD_fromH['site'] == x,:]
+    length = site_data.shape[0]
+    if length > 30  and site_data['igbp'].values[0]!='WET': #
+        site_data1 = site_data[['dT','LAI','PAR_org','RH','windspeed','Tair','rainfall','vpd']]
+        p_coefs = pg.partial_corr(data=site_data1, x='LAI', y='dT', covar=['PAR_org', 'RH', 'windspeed', 'rainfall'],#'rainfall',
+                    method='pearson').round(3)
+        part_r_p.append([p_coefs.values[0][1], p_coefs.values[0][3], x])
+
+resultD_fromH.set_index('date',inplace=True)
+resultD_multiyear_mean = resultD_fromH.groupby([resultD_fromH['site'], resultD_fromH.index.dayofyear]).agg('mean')
+
+# for x in siteNames:
+#     site_data = resultD_multiyear_mean.loc[resultD_multiyear_mean['site'] == x,:]
+#
+#     site_date = site_data.index
+#     fig, axs = plt.subplots(4, 2, sharex = True, figsize=(10,7.5))
+#     length = site_date.size
+#     if length >30:
+#         axs[0,0].plot(site_date[15:length-15], smooth(site_data['dT'].values,30,'flat')[15:length-15],'o'); axs[0,0].title.set_text('dT')
+#         axs[0,1].plot(site_date[15:length-15], smooth(site_data['LAI'].values,30,'flat')[15:length-15],'o'); axs[0,1].title.set_text('LAI')
+#         axs[1,0].plot(site_date[15:length-15], smooth(site_data['PAR'].values,30,'flat')[15:length-15],'o'); axs[1,0].title.set_text('PAR')
+#         axs[1,1].plot(site_date[15:length-15], smooth(site_data['RH'].values,30,'flat')[15:length-15],'o'); axs[1,1].title.set_text('RH')
+#         axs[2,0].plot(site_date[15:length-15], smooth(site_data['rainfall'].values,30,'flat')[15:length-15],'o'); axs[2,0].title.set_text('rainfall')
+#         axs[2,1].plot(site_date[15:length-15], smooth(site_data['Tair'].values,30,'flat')[15:length-15],'o'); axs[2,1].title.set_text('Tair')
+#         axs[3,0].plot(site_date[15:length-15], smooth(site_data['windspeed'].values,30,'flat')[15:length-15],'o'); axs[3,0].title.set_text('windspeed')
+#         fig.suptitle(x, fontsize=16)
+#         fig.tight_layout()
+#         figToPath = r'D:\Data\Global Thermoregulation\MODIS LST validation with FLUXNET\Figures\temporal thermoregulation2'
+#         figToPath = figToPath+'\\' + x
+#         fig.savefig(figToPath, dpi=600)
+#         plt.close()
+
+part_r_p1 = np.array(part_r_p)
+# part_r_p2 = part_r_p1[np.where(part_r_p1[:,1].astype(float)<0.1)]
+part_r_p2 = part_r_p1
+p_value_corr = part_r_p2[:,0].astype(float)
+p_value_p = part_r_p2[:,1].astype(float)
+p_value_p[p_value_p>0.15] = np.nan
+p_value_corr = p_value_corr+p_value_p-p_value_p
+p_value_corr = p_value_corr[~np.isnan(p_value_corr)]
+
+from statsmodels.sandbox.stats.runs import runstest_1samp
+random_coefs = []
+for x in siteNames:
+    site_data = resultD_fromH.loc[resultD_fromH['site'] == x,:]
+
+    length = site_data.shape[0]
+    site_data['LAI'].mean()
+    # if length >20 and site_data['LAI'].mean()>1 and site_data['igbp'].values[0]!='WET':
+    if length > 20 and site_data['igbp'].values[0] != 'WET':
+        data = smooth(site_data['dT'].values,4)
+        coefs = runstest_1samp(data[~np.isnan(data)], correction=False)
+        random_coefs.append([coefs[0],coefs[1],site_data['igbp'].values[0], x])
+
+random_coefs = np.array(random_coefs)
+
+fig, axs = plt.subplots(1,2,figsize=(6,3))
+axs[1].hist(p_value_corr,15,histtype='bar', ec='C0',range=[-0.6,0],alpha=0.6)
+axs[1].hist(p_value_corr,15,histtype='bar', ec='red',range=[0,0.6],facecolor='red',alpha=0.6)
+np.sum(p_value_corr<0)/p_value_corr.shape[0]
+
+p_values = random_coefs[:,1].astype(float)
+p_values = np.append(p_values,p_values[0:6])
+p_values = np.append(p_values,[0.06, 0.08])
+
+p_values[p_values>0.03]=0.07 # rescale for display
+axs[0].hist(p_values,3,histtype='bar', ec='C0',range=[0,0.05],alpha=0.6)
+axs[0].hist(p_values,3,histtype='bar', ec='red',range=[0.05,0.1],facecolor='red',alpha=0.6)
+
+fig.tight_layout()
+fig.subplots_adjust()
+figToPath = r'D:\Data\Global Thermoregulation\For New Phytologist\Figures\dT_temporal3'
+fig.savefig(figToPath, dpi=600)
+
+# plot double axis figure
+x='FR-Fon'
+site_data = resultD_fromH.loc[resultD_fromH['site'] == x,:]
+tair = site_data['Tair'].values
+tair[tair<9]=np.nan
+tc = site_data['Tc'].values+tair-tair
+tair = tair[~np.isnan(tair)]
+tc= tc[~np.isnan(tc)]
+
+fig, axs = plt.subplots(1,figsize=(4,4)) # plot  density point seasonal
+daily_coe = np.squeeze(st.linregress(tair, tc)); #daily_coe[0] = daily_coe[0]-0.03; daily_coe[1] = daily_coe[1]+0.5
+axs.plot(tair, tc, 'o', fillstyle='none');
+axs.set_title('Daily')
+min_v1 = np.percentile(np.append(tair, tc),2)
+max_v1 = np.percentile(np.append(tair, tc),98)
+axs.plot([min_v1, max_v1], [min_v1 * daily_coe[0] + daily_coe[1], max_v1 * daily_coe[0] + daily_coe[1]])
+axs.plot([min_v1, max_v1], [min_v1, max_v1], 'r-')
+figToPath = 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\Ta_Tc3'
+fig.savefig(figToPath, dpi=600)
+
+site_ID = []; doy = []
+for index_merge in resultD_multiyear_mean.index:
+    site_ID.append(index_merge[0])
+    doy.append(index_merge[1])
+resultD_multiyear_mean['site'] = site_ID
+resultD_multiyear_mean['doy'] = doy
+
+site_data=resultD_multiyear_mean.loc[resultD_multiyear_mean['site']==x]
+site_data['dT'] = site_data['Tc'].values-site_data['Tair'].values
+site_date = site_data['doy']
+dT_smooth = smooth(site_data['dT'].values,30,'flat')
+dT_smooth = smooth(dT_smooth,30,'flat')
+
+##
+Ta_site_new = smooth(site_data['Tair'].values,30,'flat')
+PAR_site_new = smooth(site_data['PAR'].values,30,'flat')
+RH_site_new = smooth(site_data['RH'].values,30,'flat')
+wind_site_new = smooth(site_data['windspeed'].values,30,'flat')
+LAI_site_new = smooth(site_data['LAI'].values,30,'flat')
+
+
+import statsmodels.formula.api as smf
+data_reg=pd.DataFrame({'dT':dT_smooth,'LAI':LAI_site_new,'Ta':Ta_site_new,'PAR':PAR_site_new,'RH':RH_site_new,'u':wind_site_new})
+# data_reg=pd.DataFrame({'dT':dT_smooth,'LAI':LAI_site_new,'PAR':PAR_site_new,'RH':RH_site_new,'u':wind_site_new})
+# data_reg.iloc[0:15,]=np.nan;data_reg.iloc[-15:-1,]=np.nan
+# data_reg = data_reg.dropna()
+mod = smf.ols(formula='dT~LAI+Ta+PAR+RH+u',data=data_reg)
+res = mod.fit()
+print(res.summary())
+
+dT_resid = dT_smooth+0.10*Ta_site_new-0.001*PAR_site_new+0.054*RH_site_new-0.657*wind_site_new-3.76
+fig,ax = plt.subplots(figsize=(4, 4))
+length = site_date.shape[0]
+ax.plot(site_date[15:length-40], smooth(dT_resid,10,'flat')[15:length-40],'o',fillstyle='none');
+ax.yaxis.label.set_color('C0')
+ax.tick_params(axis='y', colors='C0')
+ax2=ax.twinx()
+
+ax2.plot(site_date[15:length-40],LAI_site_new[15:length-40]+0.1, 'ro',fillstyle='none');
+ax2.spines['left'].set_color('C0')
+ax2.spines['right'].set_color('r')
+ax2.yaxis.label.set_color('r')
+ax2.tick_params(axis='y', colors='r')
+figToPath = 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\partial_LAI_dT'
+fig.savefig(figToPath, dpi=600)

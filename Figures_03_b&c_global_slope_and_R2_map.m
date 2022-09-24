@@ -1,4 +1,3 @@
-
 scale_dn = read(Tiff('D:\Data\Global Thermoregulation\scale_dn_monthly_v2.tif','r'));
 igbp = read(Tiff('D:\Data\Global Thermoregulation\igbpLandCover.tif','r'));
 corr_dn = read(Tiff('D:\Data\Global Thermoregulation\corr_dn_monthly_v2.tif','r'));
@@ -52,7 +51,7 @@ colormap(ax1,'gray');
 colormap(ax2,'parula');
 set(ax2,'color','none','visible','off');
 set(gcf,'position',[500,500,650*1.2,300*1.2])
-print(gcf, 'D:\Data\Global Thermoregulation\For RSE\Figures\figure_02_slope_colorbar.jpg', '-djpeg', '-r600');
+print(gcf, 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\figure_02_slope_colorbar.jpg', '-djpeg', '-r600');
 
 %% corr
 figure;
@@ -65,7 +64,7 @@ r2_fill = blockproc(r2, [30 30], fun);
 figure;histogram(r2_fill(~isnan(r2_fill)), 40, 'Normalization','PDF','FaceColor',[0.09 0.79 0.78])
 xlim([0.6 1.05]);
 set(gcf,'position',[500,500,65*2,65*2])
-print(gcf, 'D:\Data\Global Thermoregulation\For RSE\Figures\figure_02_R2_hist.jpg', '-djpeg', '-r600');
+print(gcf, 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\figure_02_R2_hist.jpg', '-djpeg', '-r600');
 
 figure; r2_plot = imagesc(r2_fill,[0 1]);
 set(r2_plot,'AlphaData',~isnan(r2_fill))
@@ -86,7 +85,7 @@ colormap(ax1,'gray');
 colormap(ax2,'parula');
 set(ax2,'color','none','visible','off');
 set(gcf,'position',[500,500,650*1.2,300*1.2])
-print(gcf, 'D:\Data\Global Thermoregulation\For RSE\Figures\figure_02_R2_colorbar.jpg', '-djpeg', '-r600');
+print(gcf, 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\figure_02_R2_colorbar.jpg', '-djpeg', '-r600');
 
 %% igbp
 igbp0=single(igbp);

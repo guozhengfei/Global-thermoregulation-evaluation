@@ -275,4 +275,4 @@ for FluxFileFolder in FluxFileFolders:
 
 resultH = pd.concat(EC_Tc_Ta_halfhour)
 
-resultH.to_csv(r'D:\Data\Project-3 homeothermy hypothesis test\csv files\EC_data_halfhour2.csv') # This file could be download from https://drive.google.com/file/d/1iSVxGpq56dm7oAZuxNvC34G_D_3KP4Rl/view?usp=sharing
+resultH.to_csv(r'D:\Data\Project-3 homeothermy hypothesis test\csv files\EC_data_halfhour2.csv')

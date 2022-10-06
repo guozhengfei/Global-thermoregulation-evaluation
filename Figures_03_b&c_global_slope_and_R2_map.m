@@ -1,9 +1,10 @@
-scale_dn = read(Tiff('D:\Data\Global Thermoregulation\scale_dn_monthly_v2.tif','r'));
+scale_dn = read(Tiff('D:\Data\Global Thermoregulation\scale_8d_v2.tif','r'));
 igbp = read(Tiff('D:\Data\Global Thermoregulation\igbpLandCover.tif','r'));
-corr_dn = read(Tiff('D:\Data\Global Thermoregulation\corr_dn_monthly_v2.tif','r'));
+corr_dn = read(Tiff('D:\Data\Global Thermoregulation\corr_8d_v2.tif','r'));
 load('D:\Data\Global Thermoregulation\satellite data_v4\background.mat');
 LAI_gsmean = read(Tiff('D:\Data\Global Thermoregulation\LAI_gs_mean.tif','r'));
 plantfraction = read(Tiff('D:\Data\global plant fraction\global_plant_fraction.tif','r'));
+waterfraction = read(Tiff('D:\Data\Global Thermoregulation\water_fraction.tif','r'));
 %% background display as grey
 igbp0 = im2single(igbp);
 igbp0(igbp0==0 | igbp0>0.0666)= nan;
@@ -19,7 +20,9 @@ plantfraction(plantfraction<0.95)=nan;
 plantfraction(~isnan(plantfraction))=1;
 LAI_gsmean(LAI_gsmean<22)=nan;
 LAI_gsmean(~isnan(LAI_gsmean))=1;
-remain_area = plantfraction.*LAI_gsmean;
+waterfraction(waterfraction>5)=nan;
+waterfraction(~isnan(waterfraction))=1;
+remain_area = plantfraction.*LAI_gsmean.*single(waterfraction);
 
 scale_dn(scale_dn<0.2)=nan;
 scale_dn(scale_dn>2)=nan;
@@ -32,7 +35,7 @@ Y = blockproc(scale_dn, [30 30], fun);
 figure;histogram(Y(~isnan(Y)), 40, 'Normalization','PDF','FaceColor',[0.09 0.79 0.78])
 xlim([0.5 1.5]);
 set(gcf,'position',[500,500,65*2,65*2])
-print(gcf, 'D:\Data\Global Thermoregulation\For RSE\Figures\figure_02_slope_hist.jpg', '-djpeg', '-r600');
+print(gcf, 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\figure_02_slope_hist.jpg', '-djpeg', '-r600');
 
 background(end-round(size(Y0,1)/7):end,:)=[];
 Y(end-round(size(Y0,1)/7):end,:)=[];
@@ -91,12 +94,11 @@ print(gcf, 'D:\Data\Global Thermoregulation\For New Phytologist\Figures\figure_0
 igbp0=single(igbp);
 
 %% Needle forest:1,3; Broad forest:2,4; 5:Mixed; Shrub:6,7; Sav: 8,9; Gras:10; CRO:12
-slope = scale_dn.*remain_area*1.1;
-slope(slope<0.5)=nan; slope(slope>2)=nan;
+slope = scale_dn;
 figure;histogram(slope(~isnan(slope)),40, 'Normalization','PDF','FaceColor',[0.09 0.79 0.78])
 
-igbp2 = igbp0.*slope./slope;
-slope2 = slope.*igbp0./igbp0;% same nan value
+igbp2 = igbp0+slope+slope;
+slope2 = slope+igbp0+igbp0;% same nan value
 igbp_vec = igbp2(~isnan(igbp2));
 slope_vec = slope2(~isnan(slope2));
 unique(round(igbp_vec))

@@ -10,7 +10,7 @@ igbp0 = im2single(igbp);
 igbp0(igbp0==0 | igbp0>0.0666)= nan;
 fun = @(block_struct) mean(block_struct.data(:),'omitnan');
 igbp1 = blockproc(igbp0, [30 30], fun);
-background = igbp1;
+background = igbp1; 
 background(~isnan(background))=1;
 
 % remove the tropical and sparse vegetation region

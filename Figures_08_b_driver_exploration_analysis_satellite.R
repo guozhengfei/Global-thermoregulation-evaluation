@@ -26,7 +26,7 @@ get_upper_tri <- function(cormat){
   cormat[lower.tri(cormat)]<- NA
   return(cormat)
 }
-
+ 
 upper_tri <- get_upper_tri(cormat)
 upper_tri
 

@@ -8,7 +8,7 @@ from scipy import io
 
 def smooth(x, window_len=11, window='hanning'):
     if x.ndim != 1:
-        raise ValueError("smooth only accepts 1 dimension arrays.")
+        raise ValueError("smooth only accepts 1 dimension arrays.") 
     if x.size < window_len:
         raise ValueError("Input vector needs to be bigger than window size.")
     if window_len<3:

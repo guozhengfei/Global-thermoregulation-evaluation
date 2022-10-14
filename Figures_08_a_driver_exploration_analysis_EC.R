@@ -52,7 +52,7 @@ reorder_cormat <- function(cormat){
 }
 
 # Reorder the correlation matrix
-cormat <- reorder_cormat(cormat)
+cormat <- reorder_cormat(cormat) 
 
 
 # Melt the correlation matrix

@@ -29,7 +29,7 @@ pmax=[
     1, % surface pressure KPa ; normal
     1,    % wind speed [m s-1]   ; normal
     1,    % relative humidity [0-100]; normal
-    7,   % leaf area index [0-10]      ; unifrom
+    7,   % leaf area index [0-10]      ; unifrom 
     0.9,    % clumping index [0.3-0.9] ; uniform
     40,    % canopy height [m]         ; uniform
     100, % Vcmax25                     ; uniform

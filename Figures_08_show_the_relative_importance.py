@@ -14,7 +14,7 @@ plt.errorbar(coefs_EC['Estimate'].values[8:], np.arange(start=9, stop=15, step=1
              elinewidth=2,  fillstyle='none');
 plt.xlim([-0.3, 0.3])
 plt.ylim([0, 15])
-plt.plot([0 ,0],[16,0],'k--',linewidth=2)
+plt.plot([0 ,0],[16,0],'k--',linewidth=2) 
 ax.get_yaxis().set_visible(False)
 figToPath = r'D:\Data\Global Thermoregulation\MODIS LST validation with FLUXNET\Figures\dT_drivers_EC'
 fig.tight_layout()

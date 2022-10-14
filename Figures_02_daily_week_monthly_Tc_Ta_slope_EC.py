@@ -264,4 +264,4 @@ st.linregress(coef_D[~np.isnan(coef_D+coef_W)],coef_W[~np.isnan(coef_D+coef_W)])
 plt.figure();plt.plot(coef_D[~np.isnan(coef_D+coef_W)],coef_W[~np.isnan(coef_D+coef_W)],'o')
 
 slope_EC_PFT = pd.DataFrame({'site':siteNames, 'slope':np.array(Coef_D)[:,0]})
-slope_EC_PFT.to_csv('D:\Data\Global Thermoregulation\For New Phytologist\Data\slope_site')
+slope_EC_PFT.to_csv('D:\Data\Global Thermoregulation\For New Phytologist\Data\slope_site') 

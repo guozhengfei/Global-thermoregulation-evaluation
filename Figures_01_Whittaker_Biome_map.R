@@ -17,4 +17,3 @@ whittaker_base_plot() +
              stroke = 0,
              alpha  = 0.7) +
   theme_bw()
-

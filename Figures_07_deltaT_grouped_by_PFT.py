@@ -96,5 +96,5 @@ cv_dT_EC = np.std(dT_EC_PFT_mean['dT'])/np.mean(dT_EC_PFT_mean['dT'])
 cv_dT_satellite= np.std(dT_satellite_PFT_mean)/np.mean(dT_satellite_PFT_mean)
 
 cv_slope_EC = np.std(slope_EC_PFT_mean['slope'])/np.mean(slope_EC_PFT_mean['slope'])
-cv_slope_satellite= np.std(slope_satellite_PFT_mean)/np.mean(slope_satellite_PFT_mean)
+cv_slope_satellite= np.std(slope_satellite_PFT_mean)/np.mean(slope_satellite_PFT_mean) 
 

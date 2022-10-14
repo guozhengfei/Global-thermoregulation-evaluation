@@ -83,4 +83,4 @@ GRA_std = std(dT_vec(igbp_vec==10));
 CRO_mean = mean(dT_vec(igbp_vec==12));
 CRO_std = std(dT_vec(igbp_vec==12));
 
-dT_satellite_PFT = [BF_mean BF_std; NF_mean NF_std; MF_mean MF_std; SAV_mean SAV_std; SHR_mean SHR_std; GRA_mean GRA_std; CRO_mean CRO_std];
+dT_satellite_PFT = [BF_mean BF_std; NF_mean NF_std; MF_mean MF_std; SAV_mean SAV_std; SHR_mean SHR_std; GRA_mean GRA_std; CRO_mean CRO_std]; 
